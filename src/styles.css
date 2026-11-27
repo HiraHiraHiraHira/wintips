@@ -1,0 +1,63 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* ==========================================================================
+   自定义样式（原来的内联 <style>，现在交给 Tailwind 构建统一输出）
+   ========================================================================== */
+
+/* 基础排版与极简滚动条 */
+    html {
+      scroll-behavior: smooth;
+      background-color: #FFFFFF;
+      color: #18181B;
+    }
+
+    ::-webkit-scrollbar {
+      width: 6px;
+      height: 6px;
+    }
+    ::-webkit-scrollbar-track {
+      background: transparent;
+    }
+    ::-webkit-scrollbar-thumb {
+      background: #E4E4E7;
+      border-radius: 9999px;
+    }
+    ::-webkit-scrollbar-thumb:hover {
+      background: #D4D4D8;
+    }
+
+    /* 移动端横向分类栏隐藏滚动条 */
+    .no-scrollbar::-webkit-scrollbar {
+      display: none;
+    }
+    .no-scrollbar {
+      -ms-overflow-style: none;
+      scrollbar-width: none;
+    }
+
+    /* 极简精致键帽样式 */
+    .kbd-cap {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      background-color: #FFFFFF;
+      color: #18181B;
+      border: 1px solid #D4D4D8;
+      box-shadow: 0 1px 0 #E4E4E7;
+      border-radius: 5px;
+      padding: 2px 6px;
+      font-family: 'JetBrains Mono', 'Inter', 'PingFang SC', 'Microsoft YaHei', monospace;
+      font-size: 12px;
+      font-weight: 500;
+      line-height: 1.35;
+      white-space: nowrap;
+    }
+
+    .kbd-sep {
+      color: #A1A1AA;
+      font-size: 11px;
+      margin: 0 4px;
+      user-select: none;
+    }

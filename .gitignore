@@ -1,0 +1,15 @@
+# 依赖
+node_modules/
+
+# 构建产物（deploy.sh 里会重新构建）
+dist/
+
+# 系统与编辑器
+.DS_Store
+*.log
+.idea/
+.vscode/
+
+# 本地环境
+.env
+.env.*

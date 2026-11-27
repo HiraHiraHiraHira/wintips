@@ -1,0 +1,15 @@
+{
+  "name": "wintips",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Windows 快捷键与隐藏操作速查表，单页静态站点",
+  "license": "MIT",
+  "scripts": {
+    "build": "bash scripts/build.sh",
+    "dev": "tailwindcss -i src/styles.css -o dist/assets/main.css --watch",
+    "clean": "rm -rf dist"
+  },
+  "devDependencies": {
+    "tailwindcss": "^3.4.17"
+  }
+}

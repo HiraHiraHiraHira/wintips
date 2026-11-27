@@ -1,0 +1,441 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Windows 快捷键与隐藏操作文档</title>
+
+  <!-- 构建产物：npm run build 生成 -->
+  <link rel="stylesheet" href="assets/main.css" />
+</head>
+
+<body class="bg-white text-[#18181B] antialiased selection:bg-[#E4E4E7] selection:text-[#18181B]">
+
+  <div class="min-h-screen flex flex-col lg:flex-row">
+
+    <!-- 桌面端左侧固定导航栏 -->
+    <aside class="hidden lg:flex lg:flex-col lg:w-[232px] lg:fixed lg:inset-y-0 lg:left-0 bg-[#FAFAFA] border-r border-[#EAEAEA] z-20">
+      <!-- 文档标题 -->
+      <div class="px-5 pt-7 pb-5 border-b border-[#EAEAEA]">
+        <h1 class="text-[15px] font-semibold tracking-tight text-[#18181B]">
+          Windows 快捷键
+        </h1>
+        <p class="text-[12px] text-[#71717A] mt-1">
+          高效操作与隐藏技巧手册
+        </p>
+      </div>
+
+      <!-- 分类导航列表 -->
+      <nav id="desktopNav" class="flex-1 overflow-y-auto px-3 py-4 space-y-0.5" aria-label="文档分类">
+        <!-- 由 JavaScript 动态渲染 -->
+      </nav>
+    </aside>
+
+    <!-- 移动端顶部固定标题与横向分类栏 -->
+    <header class="lg:hidden sticky top-0 z-30 bg-white/95 backdrop-blur-md border-b border-[#EAEAEA]">
+      <div class="px-4 pt-3.5 pb-2 flex items-baseline justify-between">
+        <h1 class="text-[15px] font-semibold tracking-tight text-[#18181B]">
+          Windows 快捷键
+        </h1>
+        <span class="text-[12px] text-[#71717A]">参考手册</span>
+      </div>
+      <nav id="mobileNav" class="flex items-center gap-1.5 overflow-x-auto no-scrollbar px-4 pb-2.5" aria-label="文档分类">
+        <!-- 由 JavaScript 动态渲染 -->
+      </nav>
+    </header>
+
+    <!-- 右侧主阅读区域 -->
+    <div class="flex-1 lg:pl-[232px] flex flex-col min-w-0">
+
+      <!-- 吸顶搜索栏 -->
+      <div class="sticky top-[82px] lg:top-0 z-20 bg-white/90 backdrop-blur-md border-b border-[#EAEAEA]">
+        <div class="max-w-[820px] mx-auto px-5 sm:px-8 py-3.5">
+          <div class="relative flex items-center">
+            <!-- 搜索图标 -->
+            <svg class="w-4 h-4 text-[#A1A1AA] absolute left-3 pointer-events-none" fill="none" stroke="currentColor" stroke-width="1.8" viewBox="0 0 24 24">
+              <circle cx="11" cy="11" r="7.5"></circle>
+              <path d="m20 20-3.8-3.8" stroke-linecap="round"></path>
+            </svg>
+
+            <input
+              id="searchInput"
+              type="text"
+              autocomplete="off"
+              spellcheck="false"
+              placeholder="搜索快捷键、功能或使用场景，如 Win+V、分屏、截图、求和..."
+              class="w-full pl-9 pr-14 py-2 text-[13.5px] bg-[#FAFAFA] text-[#18181B] placeholder-[#A1A1AA] border border-[#E4E4E7] rounded-lg focus:outline-none focus:bg-white focus:border-[#18181B] transition-colors"
+            />
+
+            <!-- 右侧提示 / 清空按钮 -->
+            <div class="absolute right-2.5 flex items-center">
+              <button
+                id="clearSearchBtn"
+                type="button"
+                aria-label="清空搜索"
+                class="hidden p-1 text-[#A1A1AA] hover:text-[#18181B] transition-colors"
+              >
+                <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                  <path d="M18 6 6 18M6 6l12 12" stroke-linecap="round"></path>
+                </svg>
+              </button>
+              <kbd id="slashHint" class="hidden sm:inline-flex items-center justify-center px-1.5 py-0.5 text-[11px] font-mono text-[#A1A1AA] bg-white border border-[#E4E4E7] rounded">/</kbd>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- 文档正文容器 -->
+      <main class="w-full max-w-[820px] mx-auto px-5 sm:px-8 pt-8 pb-20">
+        <!-- 动态渲染的文档章节列表 -->
+        <div id="docContent" class="space-y-10"></div>
+
+        <!-- 无匹配空状态 -->
+        <div id="emptyState" class="hidden py-24 text-center">
+          <p class="text-[14px] font-medium text-[#18181B]">未找到匹配的快捷键</p>
+          <p class="text-[13px] text-[#71717A] mt-1.5">尝试更换关键词，或按 Esc 清空搜索</p>
+        </div>
+      </main>
+
+    </div>
+  </div>
+
+  <script>
+    /**
+     * =========================================================================
+     * 1. 文档数据定义：8 大分类，共 78 条核心快捷键与隐藏操作
+     * =========================================================================
+     */
+    const CATEGORIES = [
+      { id: 'all', label: '全部内容' },
+      { id: 'window', label: '窗口与桌面' },
+      { id: 'text', label: '文本与输入' },
+      { id: 'system', label: '系统与急救' },
+      { id: 'file-mouse', label: '文件与鼠标组合' },
+      { id: 'browser', label: '浏览器神技' },
+      { id: 'win-r', label: 'Win + R 快捷指令' },
+      { id: 'powertoys', label: 'PowerToys 核心功能' },
+      { id: 'office', label: '常用办公' }
+    ];
+
+    const SHORTCUTS = [
+      // 1. 窗口与桌面
+      { cat: 'window', title: '窗口贴边分屏', desc: '左右贴边分屏对照查看，按 ↑ 最大化，按 ↓ 还原或最小化', keys: 'Win + ← / →' },
+      { cat: 'window', title: '贴靠布局网格', desc: '呼出 Win11 贴靠布局网格，一键切换二分、三分或四分屏', keys: 'Win + Z' },
+      { cat: 'window', title: '跨屏移动窗口', desc: '双屏用户将当前活动窗口瞬间移到另一块显示器', keys: 'Win + Shift + ← / →' },
+      { cat: 'window', title: '一键显示桌面', desc: '瞬间隐藏所有窗口直达桌面，再按一次恢复全部窗口', keys: 'Win + D' },
+      { cat: 'window', title: '仅保留当前窗口', desc: '最小化除当前窗口外的其他所有窗口，瞬间清屏专注', keys: 'Win + Home' },
+      { cat: 'window', title: '切换任务栏应用', desc: '按任务栏图标从左到右的顺序快速启动或切换对应应用', keys: 'Win + 1 ~ 9' },
+      { cat: 'window', title: '任务视图', desc: '平铺预览所有已打开的窗口，并直观管理虚拟桌面', keys: 'Win + Tab' },
+      { cat: 'window', title: '新建虚拟桌面', desc: '创建一个干净的新虚拟桌面，用来隔离工作与娱乐场景', keys: 'Win + Ctrl + D' },
+      { cat: 'window', title: '切换虚拟桌面', desc: '在多个已创建的虚拟桌面之间无缝左右切换', keys: 'Win + Ctrl + ← / →' },
+
+      // 2. 文本与输入
+      { cat: 'text', title: '剪贴板历史', desc: '调出历史复制记录列表，支持固定常用文本与图片', keys: 'Win + V' },
+      { cat: 'text', title: '表情与符号面板', desc: '随时调出系统自带的 Emoji、颜文字与特殊符号面板', keys: 'Win + .' },
+      { cat: 'text', title: '纯文本粘贴', desc: '粘贴时自动去除网页或文档自带的字体、字号与背景底色', keys: 'Ctrl + Shift + V' },
+      { cat: 'text', title: '光标按词跳跃', desc: '让输入光标一次跳过一个词，比逐字移动方向键快得多', keys: 'Ctrl + ← / →' },
+      { cat: 'text', title: '按词快速选中', desc: '按词或词组快速向右/向左选中文本，告别鼠标反复拖选', keys: 'Ctrl + Shift + ← / →' },
+      { cat: 'text', title: '整词删除', desc: '一次删除光标前面的整个词，打错字时无需连续狂按退格键', keys: 'Ctrl + Backspace' },
+      { cat: 'text', title: '跳转行首 / 行尾', desc: '瞬间跳到当前行的开头或末尾，搭配 Shift 可快速选中整行', keys: 'Home / End' },
+      { cat: 'text', title: '系统语音输入', desc: '开启系统自带的语音转文字输入功能（支持中文识别）', keys: 'Win + H' },
+
+      // 3. 系统与急救
+      { cat: 'system', title: '区域截图', desc: '框选截图直接存入剪贴板，Win11 截图工具内置 OCR 提取文字', keys: 'Win + Shift + S' },
+      { cat: 'system', title: '快速屏幕录制', desc: '直接开始或停止系统内置录屏，临时录演示无需装第三方软件', keys: 'Win + Alt + R' },
+      { cat: 'system', title: '直达任务管理器', desc: '软件卡死时秒开任务管理器，无需先按 Ctrl+Alt+Del 中转', keys: 'Ctrl + Shift + Esc' },
+      { cat: 'system', title: '重启显卡驱动', desc: '屏幕突然黑屏、花屏或界面卡死时的急救键（不会关闭当前软件）', keys: 'Win + Ctrl + Shift + B' },
+      { cat: 'system', title: '超级开始菜单', desc: '快速直达设备管理器、磁盘管理、系统终端与应用列表等高级入口', keys: 'Win + X' },
+      { cat: 'system', title: '一键锁屏', desc: '离开电脑前随手一按立即锁定屏幕，保护个人隐私', keys: 'Win + L' },
+      { cat: 'system', title: '切换投影与多屏模式', desc: '快速在仅电脑屏幕、复制、扩展与仅第二屏幕之间切换', keys: 'Win + P' },
+      { cat: 'system', title: '打开系统设置', desc: '从任意界面直接呼出 Windows 系统设置主窗口', keys: 'Win + I' },
+
+      // 4. 文件与鼠标组合
+      { cat: 'file-mouse', title: '打开文件资源管理器', desc: '随时呼出“此电脑”文件管理窗口', keys: 'Win + E' },
+      { cat: 'file-mouse', title: '连续批量重命名', desc: '按 F2 重命名文件后直接按 Tab，自动跳到下一个文件继续改名', keys: 'F2 → Tab' },
+      { cat: 'file-mouse', title: '新建文件夹', desc: '在桌面或任意文件夹内一键创建新文件夹', keys: 'Ctrl + Shift + N' },
+      { cat: 'file-mouse', title: '选中地址栏 / 秒开终端', desc: '定位到地址栏；输入 cmd 或 wt 回车可在当前目录直接打开终端', keys: 'Ctrl + L / Alt + D' },
+      { cat: 'file-mouse', title: '查看文件属性', desc: '快速查看所选文件或文件夹的体积大小、路径等详细属性', keys: 'Alt + Enter' },
+      { cat: 'file-mouse', title: '后台新标签页打开链接', desc: '用鼠标滚轮中键点击网页链接，在后台静默打开不打断阅读', keys: '鼠标中键（点链接）' },
+      { cat: 'file-mouse', title: '直接关闭标签页', desc: '用鼠标中键点击浏览器顶部标签页即可关闭，无需瞄准小叉号', keys: '鼠标中键（点标签页）' },
+      { cat: 'file-mouse', title: '多开独立窗口', desc: '用鼠标中键点击任务栏软件图标，为该软件再开一个全新窗口', keys: '鼠标中键（点任务栏图标）' },
+      { cat: 'file-mouse', title: '横向左右滚动', desc: '在超宽 Excel 表格或剪辑时间轴中直接横向平移视图', keys: 'Shift + 滚轮' },
+      { cat: 'file-mouse', title: '缩放图标与页面', desc: '在桌面或文件夹内无级调节图标大小，在网页内调节缩放比例', keys: 'Ctrl + 滚轮' },
+      { cat: 'file-mouse', title: '呼出经典右键菜单', desc: '在 Win11 中一步跳过新版折叠菜单，直出完整右键选项', keys: 'Shift + 右键' },
+      { cat: 'file-mouse', title: '快速选中整段文字', desc: '双击选单词、三击选整段，几乎在所有编辑器和浏览器中通用', keys: '三击鼠标左键' },
+      { cat: 'file-mouse', title: '精准控制文件拖拽', desc: '拖拽文件时按住对应键分别执行：强制复制 / 强制移动 / 创建快捷方式', keys: 'Ctrl / Shift / Alt + 拖拽' },
+
+      // 5. 浏览器神技
+      { cat: 'browser', title: '恢复误关的标签页', desc: '手滑关错网页时的后悔药，连续按下可一路恢复最近关闭的标签', keys: 'Ctrl + Shift + T' },
+      { cat: 'browser', title: '关闭当前标签页', desc: '左手快速关掉当前浏览完的网页，比移动鼠标点叉号更顺手', keys: 'Ctrl + W' },
+      { cat: 'browser', title: '打开无痕浏览窗口', desc: '新建隐私/无痕浏览窗口，不留历史记录与登录缓存', keys: 'Ctrl + Shift + N' },
+      { cat: 'browser', title: '按序号跳转标签页', desc: '精准跳到第 1 ~ 8 个标签页，按 Ctrl + 9 直接跳到最后一个标签页', keys: 'Ctrl + 1 ~ 8 / Ctrl + 9' },
+      { cat: 'browser', title: '搜索已打开的标签页', desc: '打开 Chrome / Edge 标签页搜索框，网页再多也能输入关键词秒找', keys: 'Ctrl + Shift + A' },
+      { cat: 'browser', title: '聚焦浏览器地址栏', desc: '瞬间选中网址，方便直接输入新网址、搜索或复制当前链接', keys: 'Ctrl + L' },
+      { cat: 'browser', title: '忽略缓存强制刷新', desc: '网页样式错乱或数据未更新时，强制重新拉取最新资源', keys: 'Ctrl + Shift + R' },
+      { cat: 'browser', title: '整屏上下翻页', desc: '浏览长文章时按空格向下翻一屏，按 Shift + 空格向上翻一屏', keys: '空格 / Shift + 空格' },
+      { cat: 'browser', title: '新标签页打开输入地址', desc: '在地址栏输完网址或搜索词后按下，保留当前页并在新标签打开', keys: 'Alt + Enter（地址栏）' },
+
+      // 6. Win + R 快捷指令
+      { cat: 'win-r', title: '开机自启动文件夹', desc: '打开系统自启动目录，将任意软件快捷方式拖入即可开机自动运行', keys: 'shell:startup' },
+      { cat: 'win-r', title: '经典卸载程序列表', desc: '直达传统控制面板的“程序和功能”，卸载软件比新版设置更快', keys: 'appwiz.cpl' },
+      { cat: 'win-r', title: '网络连接适配器面板', desc: '直达网卡管理界面，修改 DNS、查看 IP 或禁用网卡的最快入口', keys: 'ncpa.cpl' },
+      { cat: 'win-r', title: '查看完整硬件配置', desc: '打开 DirectX 诊断工具，一键查看 CPU、内存、显卡型号与显存', keys: 'dxdiag' },
+      { cat: 'win-r', title: '磁盘清理工具', desc: '快速打开系统自带的经典磁盘清理，清理临时文件与更新缓存', keys: 'cleanmgr' },
+      { cat: 'win-r', title: '远程桌面连接', desc: '直接启动 Windows 远程桌面客户端连接其他电脑或服务器', keys: 'mstsc' },
+      { cat: 'win-r', title: '打开终端 / 命令提示符', desc: '快速启动新版 Windows Terminal (wt) 或传统命令提示符 (cmd)', keys: 'wt / cmd' },
+
+      // 7. PowerToys 核心功能
+      { cat: 'powertoys', title: '始终置顶 (Always on Top)', desc: '将任意窗口强行钉在最顶层并带边框提示，边看资料边记笔记必备', keys: 'Win + Ctrl + T' },
+      { cat: 'powertoys', title: '屏幕文本提取器', desc: '全局 OCR 工具，框选视频字幕、图片或报错弹窗直接提取文字', keys: 'Win + Shift + T' },
+      { cat: 'powertoys', title: 'PowerToys Run 全局启动器', desc: '快速启动应用与搜文件，支持直接输入算式计算与单位换算', keys: 'Alt + Space' },
+      { cat: 'powertoys', title: '高级粘贴', desc: '粘贴前一键将剪贴板内容转换为纯文本、Markdown 或 JSON 格式', keys: 'Win + Shift + V' },
+      { cat: 'powertoys', title: '屏幕取色器', desc: '点击屏幕任意像素即刻放大取色并自动复制 HEX / RGB 色值', keys: 'Win + Shift + C' },
+      { cat: 'powertoys', title: 'Peek 文件速览', desc: '在文件夹中选中图片、PDF 或代码按一下直接预览，无需双击打开', keys: 'Ctrl + Space' },
+      { cat: 'powertoys', title: '文件占用解锁', desc: '遇到文件被占用无法删除时，右键查出占用进程并一键解锁', keys: '右键 → File Locksmith' },
+      { cat: 'powertoys', title: '保持唤醒', desc: '点击右下角托盘小咖啡杯，一键保持电脑临时不休眠不息屏', keys: 'Awake（托盘咖啡杯）' },
+      { cat: 'powertoys', title: 'FancyZones 高级分屏', desc: '呼出布局编辑器，为大屏或带鱼屏自定义复杂的专属分屏区域', keys: 'Win + Shift + ~' },
+
+      // 8. 常用办公 (Word / Excel / Notion)
+      { cat: 'office', title: '重复操作 / 绝对引用（Word / Excel）', desc: '在 Word 中重复上一步操作；在 Excel 编辑公式时切换 $ 绝对引用', keys: 'F4' },
+      { cat: 'office', title: '快捷键格式刷（Word）', desc: '快速复制与粘贴文字格式，支持连续多次套用无需反复点按钮', keys: 'Ctrl + Shift + C / V' },
+      { cat: 'office', title: '插入分页符（Word）', desc: '优雅另起一页，彻底告别狂按回车导致后续页面排版错乱', keys: 'Ctrl + Enter' },
+      { cat: 'office', title: '整段上下移动（Word）', desc: '直接将当前光标所在的整段文字上下挪动位置，免去剪切粘贴', keys: 'Alt + Shift + ↑ / ↓' },
+      { cat: 'office', title: '矩形块选文字（Word）', desc: '纵向拉出矩形选区选中一列对齐文字，批量删行首序号利器', keys: 'Alt + 鼠标拖拽' },
+      { cat: 'office', title: '秒选整片数据区域（Excel）', desc: '一秒选中连续的几千行或整片数据，告别鼠标往下拖到手酸', keys: 'Ctrl + Shift + 方向键' },
+      { cat: 'office', title: '快速填充（Excel）', desc: '手动示范 1 行拆分或合并规律后按下，自动按规律填满整列', keys: 'Ctrl + E' },
+      { cat: 'office', title: '一键自动求和（Excel）', desc: '选中数据下方或右侧空白单元格，直接生成 SUM 求和公式', keys: 'Alt + =' },
+      { cat: 'office', title: '填入当前日期 / 时间（Excel）', desc: '一秒输入当前静态日期，加上 Shift (Ctrl + Shift + ;) 填入当前时间', keys: 'Ctrl + ;' },
+      { cat: 'office', title: '单元格内强制换行（Excel）', desc: '在同一个表格单元内另起一行输入文字，不会跳到下一行', keys: 'Alt + Enter' },
+      { cat: 'office', title: '全局秒搜跳转（Notion）', desc: '随时呼出搜索框，快速定位并跳转到工作区内的任意页面', keys: 'Ctrl + P / Ctrl + K' },
+      { cat: 'office', title: '整块内容上下移动（Notion）', desc: '无需鼠标拖拽左侧手柄，直接用键盘调整当前块的上下顺序', keys: 'Ctrl + Shift + ↑ / ↓' },
+      { cat: 'office', title: '快速转换块类型（Notion）', desc: '1~3 级标题、4 待办、5~6 列表、7 折叠块、8 代码块一键切换', keys: 'Ctrl + Shift + 1 ~ 8' },
+      { cat: 'office', title: '套用上次高亮或颜色（Notion）', desc: '连续给多处重点标记相同的高亮背景或文字颜色时极其高效', keys: 'Ctrl + Shift + H' },
+      { cat: 'office', title: '收起 / 展开侧边栏（Notion）', desc: '一键隐藏左侧目录栏，切换至宽敞的沉浸写作阅读模式', keys: 'Ctrl + \\' }
+    ];
+
+    /**
+     * =========================================================================
+     * 2. 状态与辅助渲染函数
+     * =========================================================================
+     */
+    const state = {
+      activeCategory: 'all',
+      query: ''
+    };
+
+    function escapeHtml(str) {
+      return str
+        .replace(/&/g, '&amp;')
+        .replace(/</g, '&lt;')
+        .replace(/>/g, '&gt;')
+        .replace(/"/g, '&quot;');
+    }
+
+    // 将快捷键字符串格式化为精致的 <kbd> 键帽，组合键连接符用浅灰色
+    function renderKeycaps(keysStr) {
+      const tokens = keysStr.split(/(\s+\+\s+|\s+\/\s+|\s+→\s+)/g);
+      return tokens.map(token => {
+        const t = token.trim();
+        if (t === '+' || t === '/' || t === '→') {
+          return `<span class="kbd-sep">${t}</span>`;
+        }
+        return `<kbd class="kbd-cap">${escapeHtml(token)}</kbd>`;
+      }).join('');
+    }
+
+    // 过滤逻辑：支持分类 + 关键词多词模糊匹配（兼容忽略空格如 Win+V）
+    function getFilteredItems() {
+      const q = state.query.trim().toLowerCase();
+      return SHORTCUTS.filter(item => {
+        if (state.activeCategory !== 'all' && item.cat !== state.activeCategory) {
+          return false;
+        }
+        if (!q) return true;
+
+        const catObj = CATEGORIES.find(c => c.id === item.cat);
+        const searchPool = [
+          item.title,
+          item.desc,
+          item.keys,
+          item.keys.replace(/\s+/g, ''),
+          catObj ? catObj.label : ''
+        ].join(' ').toLowerCase();
+
+        return q.split(/\s+/).every(term => searchPool.includes(term));
+      });
+    }
+
+    /**
+     * =========================================================================
+     * 3. 视图渲染：桌面侧边栏、移动端分类栏、文档主体
+     * =========================================================================
+     */
+    function renderNavigation() {
+      const desktopNav = document.getElementById('desktopNav');
+      const mobileNav = document.getElementById('mobileNav');
+
+      const getCount = (catId) =>
+        catId === 'all' ? SHORTCUTS.length : SHORTCUTS.filter(i => i.cat === catId).length;
+
+      // 桌面端左侧导航
+      desktopNav.innerHTML = CATEGORIES.map(cat => {
+        const isActive = state.activeCategory === cat.id;
+        const count = getCount(cat.id);
+        return `
+          <button
+            type="button"
+            data-cat="${cat.id}"
+            class="w-full flex items-center justify-between px-3 py-2 rounded-md text-[13px] transition-colors text-left ${
+              isActive
+                ? 'bg-[#EFEFF1] text-[#18181B] font-medium'
+                : 'text-[#52525B] hover:text-[#18181B] hover:bg-[#F4F4F5]/70'
+            }"
+          >
+            <span class="truncate">${cat.label}</span>
+            <span class="text-[11px] tabular-nums ${isActive ? 'text-[#52525B]' : 'text-[#A1A1AA]'}">${count}</span>
+          </button>
+        `;
+      }).join('');
+
+      // 移动端顶部横向分类
+      mobileNav.innerHTML = CATEGORIES.map(cat => {
+        const isActive = state.activeCategory === cat.id;
+        return `
+          <button
+            type="button"
+            data-cat="${cat.id}"
+            class="shrink-0 px-2.5 py-1 rounded-md text-[12.5px] transition-colors ${
+              isActive
+                ? 'bg-[#18181B] text-white font-medium'
+                : 'text-[#52525B] bg-[#F4F4F5] hover:text-[#18181B]'
+            }"
+          >
+            ${cat.label}
+          </button>
+        `;
+      }).join('');
+    }
+
+    function renderDocument() {
+      const docContent = document.getElementById('docContent');
+      const emptyState = document.getElementById('emptyState');
+      const filtered = getFilteredItems();
+
+      if (filtered.length === 0) {
+        docContent.innerHTML = '';
+        emptyState.classList.remove('hidden');
+        return;
+      }
+      emptyState.classList.add('hidden');
+
+      // 按分类组织为清晰的文档章节
+      const realCategories = CATEGORIES.filter(c => c.id !== 'all');
+      const sectionsHtml = realCategories.map(cat => {
+        const items = filtered.filter(item => item.cat === cat.id);
+        if (items.length === 0) return '';
+
+        const rowsHtml = items.map(item => `
+          <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-2 sm:gap-6 py-3 px-2.5 -mx-2.5 rounded-lg hover:bg-[#FAFAFA] transition-colors border-b border-[#F4F4F5] last:border-b-0">
+            <div class="min-w-0">
+              <div class="text-[14px] font-medium text-[#18181B] leading-snug">
+                ${escapeHtml(item.title)}
+              </div>
+              <div class="text-[13px] text-[#71717A] mt-0.5 leading-relaxed">
+                ${escapeHtml(item.desc)}
+              </div>
+            </div>
+            <div class="shrink-0 flex flex-wrap items-center sm:justify-end gap-y-1">
+              ${renderKeycaps(item.keys)}
+            </div>
+          </div>
+        `).join('');
+
+        return `
+          <section>
+            <div class="flex items-baseline justify-between pb-2.5 mb-1 border-b border-[#EAEAEA]">
+              <h2 class="text-[15px] font-semibold tracking-tight text-[#18181B]">
+                ${cat.label}
+              </h2>
+              <span class="text-[12px] text-[#A1A1AA] tabular-nums">
+                ${items.length} 项
+              </span>
+            </div>
+            <div>
+              ${rowsHtml}
+            </div>
+          </section>
+        `;
+      }).join('');
+
+      docContent.innerHTML = sectionsHtml;
+    }
+
+    function renderAll() {
+      renderNavigation();
+      renderDocument();
+    }
+
+    /**
+     * =========================================================================
+     * 4. 事件绑定：分类切换、实时搜索、/ 聚焦与 Esc 清空
+     * =========================================================================
+     */
+    function handleNavClick(e) {
+      const btn = e.target.closest('button[data-cat]');
+      if (!btn) return;
+      state.activeCategory = btn.dataset.cat;
+      renderAll();
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+    }
+
+    document.getElementById('desktopNav').addEventListener('click', handleNavClick);
+    document.getElementById('mobileNav').addEventListener('click', handleNavClick);
+
+    const searchInput = document.getElementById('searchInput');
+    const clearSearchBtn = document.getElementById('clearSearchBtn');
+    const slashHint = document.getElementById('slashHint');
+
+    function syncSearchControls() {
+      const hasText = searchInput.value.length > 0;
+      clearSearchBtn.classList.toggle('hidden', !hasText);
+      slashHint.classList.toggle('hidden', hasText);
+    }
+
+    searchInput.addEventListener('input', (e) => {
+      state.query = e.target.value;
+      syncSearchControls();
+      renderDocument();
+    });
+
+    clearSearchBtn.addEventListener('click', () => {
+      searchInput.value = '';
+      state.query = '';
+      syncSearchControls();
+      renderDocument();
+      searchInput.focus();
+    });
+
+    // 键盘快捷键：按 / 聚焦搜索框，按 Esc 清空并失焦
+    document.addEventListener('keydown', (e) => {
+      if (e.key === '/' && document.activeElement !== searchInput && !e.ctrlKey && !e.metaKey && !e.altKey) {
+        e.preventDefault();
+        searchInput.focus();
+        searchInput.select();
+      } else if (e.key === 'Escape') {
+        if (searchInput.value) {
+          searchInput.value = '';
+          state.query = '';
+          syncSearchControls();
+          renderDocument();
+        }
+        if (document.activeElement === searchInput) {
+          searchInput.blur();
+        }
+      }
+    });
+
+    // 初始渲染
+    renderAll();
+  </script>
+</body>
+</html>
